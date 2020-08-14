@@ -9,3 +9,5 @@ iOS扩展性高、易用的弹窗
 - ✅完整的生命周期
 - ✅自适应键盘
 - 单独window和控制器支持
+
+![foryou](https://github.com/rollingstoneW/sources/blob/master/Aug-14-2020%2020-28-50-min.gif)
