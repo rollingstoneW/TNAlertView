@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.summary          = '扩展性高、易用的弹窗'
 
   s.description      = <<-DESC
-扩展性高、易用的弹窗
+扩展性高、易用的弹窗。
                        DESC
 
   s.homepage         = 'https://github.com/rollingstoneW/TTKit'

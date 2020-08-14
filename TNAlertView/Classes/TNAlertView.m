@@ -274,7 +274,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 - (CGSize)customContentViewMaxVisibleSize {
     CGFloat containerMaxHeight = CGRectGetHeight(self.bounds) - 40;
     CGFloat customContentBottom = CGRectGetHeight(self.buttonContainer.frame) + self.buttonInsets.bottom;
-    CGFloat customContentTop;
+    CGFloat customContentTop = 0;
     if (self.titleLabel) {
         customContentTop = CGRectGetMaxY(self.titleLabel.frame) + self.titleInsets.bottom;
     }
@@ -330,7 +330,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         [self.containerView addSubview:self.messageTextView];
         [self setNeedsUpdateConstraints];
     }
-    self.messageTextView.AttributedText = message;
+    self.messageTextView.attributedText = message;
 }
 
 - (void)updatePrettyTitle:(NSAttributedString *)title {
@@ -343,7 +343,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         [self.containerView addSubview:self.titleLabel];
         [self setNeedsUpdateConstraints];
     }
-    self.titleLabel.AttributedText = title;
+    self.titleLabel.attributedText = title;
 }
 
 - (void)reloadButtons {
@@ -356,7 +356,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         separators = [NSMutableArray array];
         self.separators = separators;
     }
-    UIView *(^addSeparator)() = ^UIView *{
+    UIView *(^addSeparator)(void) = ^UIView *{
         UIView *view = [[UIView alloc] init];
         view.backgroundColor = self.buttonSeparatorColor;
         [self.buttonContainer addSubview:view];
