@@ -1,8 +1,8 @@
 //
 //  TNAlertView.m
-//  ZYBLiveFoundation
+//  TNAlertView
 //
-//  Created by ZYB on 2020/3/30.
+//  Created by rollingstoneW on 2020/3/30.
 //
 
 #import "TNAlertView.h"
@@ -38,7 +38,6 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 }
 
 + (instancetype)buttonWithTitle:(id)title style:(TNAlertActionStyleStyle)style handler:(void (^)(TNAlertButton * _Nonnull))handler {
-
     TNAlertButton *button = [self buttonWithType:UIButtonTypeCustom];
     NSAttributedString *prettyTitle;
     if ([title isKindOfClass:[NSAttributedString class]]) {
@@ -129,7 +128,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
                                          NSParagraphStyleAttributeName: messageStyle};
         appearance.titleInsets = UIEdgeInsetsMake(10, 20, 0, 20);
         appearance.messageInsets = UIEdgeInsetsMake(10, 20, 10, 20);
-        appearance.buttonInsets = UIEdgeInsetsMake(10, 0, 0, 0);
+        appearance.buttonInsets = UIEdgeInsetsMake(5, 0, 5, 0);
         appearance.preferredWidth = 280;
         appearance.cornerRadius = 12;
         appearance.dimBgColor = [[UIColor blackColor] colorWithAlphaComponent:0.7];
@@ -273,7 +272,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 
 - (CGSize)customContentViewMaxVisibleSize {
     CGFloat containerMaxHeight = CGRectGetHeight(self.bounds) - 40;
-    CGFloat customContentBottom = CGRectGetHeight(self.buttonContainer.frame) + self.buttonInsets.bottom;
+    CGFloat customContentBottom = CGRectGetHeight(self.buttonContainer.frame) + self.buttonInsets.bottom + self.buttonInsets.top;
     CGFloat customContentTop = 0;
     if (self.titleLabel) {
         customContentTop = CGRectGetMaxY(self.titleLabel.frame) + self.titleInsets.bottom;
@@ -403,9 +402,13 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
                 UIView *verticalSeparator = addSeparator();
                 [verticalSeparator mas_makeConstraints:^(MASConstraintMaker *make) {
                     make.top.equalTo(button).offset(-self.buttonVerticalSpacing/2);
-                    make.bottom.equalTo(button).offset(self.buttonVerticalSpacing/2);
                     make.centerX.equalTo(button.mas_right).offset(self.buttonHorizentalSpacing/2);
                     make.width.equalTo(@(separatorWidth));
+                    if (lineIdx == lines.count - 1) {
+                        make.bottom.equalTo(self.buttonContainer).offset(self.buttonInsets.bottom);
+                    } else {
+                        make.bottom.equalTo(button).offset(self.buttonVerticalSpacing/2);
+                    }
                 }];
             }
             [button mas_remakeConstraints:^(MASConstraintMaker *make) {
@@ -459,6 +462,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         return;
     }
     self.lastSize = size;
+    !self.containerSizeDidChange ?: self.containerSizeDidChange(size);
     if (self.keyboardTop == 0) {
         return;
     }
@@ -520,15 +524,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
     }
     
     [self.buttonContainer mas_remakeConstraints:^(MASConstraintMaker *make) {
-        if (lastBottom.view == self.containerView) {
-            self.buttonContainerTop = make.top.equalTo(lastBottom).offset(bottomInset + self.buttonInsets.top);
-        } else {
-            if (self.contentViewContainer) {
-                self.buttonContainerTop = make.top.equalTo(lastBottom);
-            } else {
-                self.buttonContainerTop = make.top.equalTo(lastBottom).offset(self.messageInsets.bottom);
-            }
-        }
+        self.buttonContainerTop = make.top.equalTo(lastBottom).offset(bottomInset + self.buttonInsets.top);
         make.left.right.bottom.equalTo(self.containerView).insets(self.buttonInsets);
     }];
     
@@ -862,7 +858,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         shouldReturn = !activeInput;
     }
     if (shouldReturn) {
-        NSLog(@"centerY 0");
+//        NSLog(@"centerY 0");
         self.centerYOffset = 0;
         self.keyboardTop = 0;
     } else {

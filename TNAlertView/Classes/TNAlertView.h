@@ -1,8 +1,8 @@
 //
 //  TNAlertView.h
-//  ZYBLiveFoundation
+//  TNAlertView
 //
-//  Created by ZYB on 2020/3/30.
+//  Created by rollingstoneW on 2020/3/30.
 //
 
 #import "TNAbstractPopupView.h"
@@ -75,7 +75,7 @@ typedef NS_ENUM(NSUInteger, TNAlertAnimation) {
 
 @property (nonatomic, strong, readonly) UIView *buttonContainer;
 @property (nonatomic, strong) NSArray<TNAlertButton *> *buttons;
-@property (nonatomic, assign) UIEdgeInsets buttonInsets UI_APPEARANCE_SELECTOR; // 按钮距离消息、弹窗的距离，默认{10, 0, 0, 0}，距离消息为messageInsets.bottom + buttonInsets.top
+@property (nonatomic, assign) UIEdgeInsets buttonInsets UI_APPEARANCE_SELECTOR; // 按钮距离消息、弹窗的距离，默认{5, 0, 5, 0}，距离消息为messageInsets.bottom + buttonInsets.top
 @property (nonatomic, assign) CGFloat buttonHorizentalSpacing UI_APPEARANCE_SELECTOR; // 按钮横向间距，默认0
 @property (nonatomic, assign) CGFloat buttonVerticalSpacing UI_APPEARANCE_SELECTOR; // 按钮纵向间距，默认0
 @property (nonatomic, assign) BOOL showButtonSeparator UI_APPEARANCE_SELECTOR; // 是否展示按钮分割线，默认YES
