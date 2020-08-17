@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'TNAlertView'
-  s.version          = '0.0.3'
+  s.version          = '0.0.4'
   s.summary          = '扩展性高、易用的弹窗'
 
   s.description      = <<-DESC
