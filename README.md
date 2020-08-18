@@ -11,3 +11,8 @@ iOS扩展性高、易用的弹窗
 - 单独window和控制器支持
 
 ![foryou](https://github.com/rollingstoneW/sources/blob/master/Aug-14-2020%2020-28-50-min.gif)
+
+# Example
+
+TTDemo:https://github.com/rollingstoneW/TTDemo
+To run the example project, clone TTDemo, and run pod install.
