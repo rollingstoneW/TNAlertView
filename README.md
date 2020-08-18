@@ -14,5 +14,5 @@ iOS扩展性高、易用的弹窗
 
 # Example
 
-TTDemo:https://github.com/rollingstoneW/TTDemo
+TTDemo:https://github.com/rollingstoneW/TTDemo  
 To run the example project, clone TTDemo, and run pod install.
