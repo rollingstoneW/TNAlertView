@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
 扩展性高、易用的弹窗。
                        DESC
 
-  s.homepage         = 'https://github.com/rollingstoneW/TTKit'
+  s.homepage         = 'https://github.com/rollingstoneW/TNAlertView'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'rollingstoneW' => '190268198@qq.com' }
   s.source           = { :git => 'https://github.com/rollingstoneW/TNAlertView.git', :tag => s.version.to_s }
