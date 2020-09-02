@@ -63,6 +63,10 @@ typedef NS_ENUM(NSUInteger, TNPopupDismissOthersPolicy) {
 - (void)willDismiss:(BOOL)animated;
 - (void)didDismiss:(BOOL)animated;
 
+// 屏幕发生旋转
+- (void)willRotateToOrientation:(UIInterfaceOrientation)orientation;
+- (void)didRotateToOrientation:(UIInterfaceOrientation)orientation;
+
 // 子类可重写来自定义动画
 - (void)presentShowingAnimationWithCompletion:(dispatch_block_t)completion;
 - (void)presentDismissingAnimationWithCompletion:(dispatch_block_t)completion;

@@ -82,6 +82,8 @@ typedef NS_ENUM(NSUInteger, TNAlertAnimation) {
 @property (nonatomic, strong) UIColor *buttonSeparatorColor UI_APPEARANCE_SELECTOR; // 按钮分割线颜色，默认lightGray
 
 @property (nonatomic, assign) CGFloat preferredWidth UI_APPEARANCE_SELECTOR; // 宽度，默认280
+@property (nonatomic, assign) UIEdgeInsets preferredInsets UI_APPEARANCE_SELECTOR; //弹窗四周距离父视图的最小距离，默认{0,0,0,0} 如果preferredWidth值为0，切preferredInsets不为{0,0,0,0}，则以preferredInsets为准。
+@property (nonatomic, assign) BOOL autoAdjustSafeAreaInsets UI_APPEARANCE_SELECTOR; // 是否根据safeAreaInsets自动改变preferredInsets，默认YES
 @property (nonatomic, assign) CGFloat cornerRadius UI_APPEARANCE_SELECTOR; // 圆角，默认12
 @property (nonatomic, assign) UIColor *dimBgColor UI_APPEARANCE_SELECTOR; // 蒙层背景色，默认70%黑色
 @property (nonatomic, assign) BOOL shouldCustomContentViewAutoScroll; // 自定义视图超出最大高度自定义视图是否可以自动滚动，默认YES

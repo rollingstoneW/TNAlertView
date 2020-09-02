@@ -20,6 +20,8 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
     return @{NSFontAttributeName: [UIFont boldSystemFontOfSize:16], NSForegroundColorAttributeName: [UIColor redColor]};
 }
 
+typedef void(^ContainerSizeDidChange)(CGSize size);
+
 @interface TNAlertButton ()
 
 @property (nonatomic, assign) CGSize lastSize;
@@ -82,6 +84,8 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 
 @interface TNAlertView () <UITextFieldDelegate>
 
+@property (nonatomic, assign) UIEdgeInsets adjustedInsets;
+
 @property (nullable, nonatomic, strong) UILabel *titleLabel;
 @property (nullable, nonatomic, strong) UITextView *messageTextView;
 @property (nullable, nonatomic, strong) UIView *contentViewContainer;
@@ -98,7 +102,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 
 @property (nonatomic, strong) NSMutableArray<UITextField *> *innnerTextFields;
 
-@property (nonatomic, strong) void(^containerSizeDidChange)(CGSize size);
+@property (nonatomic, strong) NSMutableArray<ContainerSizeDidChange> *sizeDidChangeBlocks;
 
 @property (nonatomic, assign) CGSize lastSize;
 @property (nonatomic, assign) CGFloat keyboardTop;
@@ -135,6 +139,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         appearance.followingKeyboardSpacing = 20;
         appearance.showButtonSeparator = YES;
         appearance.buttonSeparatorColor = UIColor.lightGrayColor;
+        appearance.autoAdjustSafeAreaInsets = YES;
     }
 }
 
@@ -175,6 +180,7 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 
 
 - (void)dealloc {
+    self.sizeDidChangeBlocks = nil;
     @try {
         [self.messageTextView removeObserver:self forKeyPath:@"contentSize"];
         if ([self.contentViewContainer isKindOfClass:[UIScrollView class]]) {
@@ -264,14 +270,17 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 }
 
 - (void)executeWhenAlertSizeDidChange:(void (^)(CGSize))block {
-    self.containerSizeDidChange = block;
+    if (!block) { return; }
+    if (!self.sizeDidChangeBlocks) { self.sizeDidChangeBlocks = [NSMutableArray array]; }
+    
+    [self.sizeDidChangeBlocks addObject:block];
     if (!CGSizeEqualToSize(self.lastSize, CGSizeZero)) {
-        !block ?: block(self.lastSize);
+        block(self.lastSize);
     }
 }
 
 - (CGSize)customContentViewMaxVisibleSize {
-    CGFloat containerMaxHeight = CGRectGetHeight(self.bounds) - 40;
+    CGFloat containerMaxHeight = CGRectGetHeight(self.bounds) - [self containerHeightLessThanSelf];
     CGFloat customContentBottom = CGRectGetHeight(self.buttonContainer.frame) + self.buttonInsets.bottom + self.buttonInsets.top;
     CGFloat customContentTop = 0;
     if (self.titleLabel) {
@@ -294,13 +303,6 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 }
 
 - (void)loadSubviews {
-    [self.containerView mas_makeConstraints:^(MASConstraintMaker *make) {
-        self.containerCenterY = make.centerY.equalTo(self);
-        make.centerX.equalTo(self);
-        make.width.equalTo(@(self.preferredWidth));
-        make.height.lessThanOrEqualTo(self).offset(-40);
-    }];
-    
     [self setTitle:_title];
     [self setMessage:_message];
     
@@ -453,6 +455,28 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
     }];
 }
 
+- (void)setupAdjustedInsets {
+    if (UIEdgeInsetsEqualToEdgeInsets(self.preferredInsets, UIEdgeInsetsZero)) {
+        return;
+    }
+    if (self.autoAdjustSafeAreaInsets) {
+        UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
+        if (@available(iOS 11.0, *)) {
+            if (UIEdgeInsetsEqualToEdgeInsets(self.superview.safeAreaInsets, UIEdgeInsetsZero)) {
+                return;
+            }
+            safeAreaInsets = self.superview.safeAreaInsets;
+        }
+        UIEdgeInsets adjusted = UIEdgeInsetsMake(self.preferredInsets.top + safeAreaInsets.top,
+                                                 self.preferredInsets.left + safeAreaInsets.left,
+                                                 self.preferredInsets.bottom + safeAreaInsets.bottom,
+                                                 self.preferredInsets.right + safeAreaInsets.right);
+        self.adjustedInsets = adjusted;
+    } else {
+        self.adjustedInsets = self.preferredInsets;
+    }
+}
+
 #pragma mark - Override
 
 - (void)layoutSubviews {
@@ -462,7 +486,10 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
         return;
     }
     self.lastSize = size;
-    !self.containerSizeDidChange ?: self.containerSizeDidChange(size);
+    [self.sizeDidChangeBlocks enumerateObjectsUsingBlock:^(ContainerSizeDidChange block, NSUInteger idx, BOOL * _Nonnull stop) {
+        block(size);
+    }];
+    
     if (self.keyboardTop == 0) {
         return;
     }
@@ -488,8 +515,24 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
     }
 }
 
+- (void)safeAreaInsetsDidChange {
+    [self setupAdjustedInsets];
+}
+
 - (void)updateConstraints {
     [super updateConstraints];
+    
+    [self.containerView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        self.containerCenterY = make.centerY.equalTo(self);
+        make.centerX.equalTo(self);
+        if (self.preferredWidth == 0 &&
+            !UIEdgeInsetsEqualToEdgeInsets(self.adjustedInsets, UIEdgeInsetsZero)) {
+            make.width.equalTo(self).offset(-(self.adjustedInsets.left + self.adjustedInsets.right));
+        } else {
+            make.width.equalTo(@(self.preferredWidth));
+        }
+        make.height.lessThanOrEqualTo(self).offset(-[self containerHeightLessThanSelf]);
+    }];
     
     MASViewAttribute *lastBottom = self.containerView.mas_top;
     CGFloat bottomInset = 0;
@@ -772,23 +815,29 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
 }
 
 - (void)setPreferredWidth:(CGFloat)preferredWidth {
+    if (_preferredWidth == preferredWidth) { return; }
+    
     _preferredWidth = preferredWidth;
-    [self.containerView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@(preferredWidth));
-    }];
+    [self setNeedsUpdateConstraints];
 }
 
 - (void)setButtonHorizentalSpacing:(CGFloat)buttonHorizentalSpacing {
+    if (_buttonHorizentalSpacing == buttonHorizentalSpacing) { return; }
+    
     _buttonHorizentalSpacing = buttonHorizentalSpacing;
     [self setNeedsUpdateConstraints];
 }
 
 - (void)setButtonVerticalSpacing:(CGFloat)buttonVerticalSpacing {
+    if (_buttonVerticalSpacing == buttonVerticalSpacing) { return; }
+    
     _buttonVerticalSpacing = buttonVerticalSpacing;
     [self setNeedsUpdateConstraints];
 }
 
 - (void)setButtonInsets:(UIEdgeInsets)buttonInsets {
+    if (UIEdgeInsetsEqualToEdgeInsets(_buttonInsets, buttonInsets)) { return; }
+    
     _buttonInsets = buttonInsets;
     [self setNeedsUpdateConstraints];
 }
@@ -830,10 +879,50 @@ static NSDictionary *TNAlertButtonDestructiveTitleAttributes() {
     }
 }
 
+- (void)setAdjustedInsets:(UIEdgeInsets)adjustedInsets {
+    if (UIEdgeInsetsEqualToEdgeInsets(_adjustedInsets, adjustedInsets)) {
+        return;
+    }
+    _adjustedInsets = adjustedInsets;
+    if (![self needsUpdateConstraints]) {
+        [self setNeedsUpdateConstraints];
+        [self updateConstraintsIfNeeded];
+    }
+}
+
+- (void)setAutoAdjustSafeAreaInsets:(BOOL)autoAdjustSafeAreaInsets {
+    if (_autoAdjustSafeAreaInsets == autoAdjustSafeAreaInsets) {
+        return;
+    }
+    _autoAdjustSafeAreaInsets = autoAdjustSafeAreaInsets;
+    [self setupAdjustedInsets];
+}
+
+- (void)setPreferredInsets:(UIEdgeInsets)preferredInsets {
+    if (UIEdgeInsetsEqualToEdgeInsets(_preferredInsets, preferredInsets)) {
+        return;
+    }
+    _preferredInsets = preferredInsets;
+    [self setupAdjustedInsets];
+}
+
 #pragma mark - Getters
 
 - (NSArray<UITextField *> *)textFields {
     return self.innnerTextFields.copy;
+}
+
+- (CGFloat)containerHeightLessThanSelf {
+    if (self.preferredWidth == 0 &&
+        !UIEdgeInsetsEqualToEdgeInsets(self.adjustedInsets, UIEdgeInsetsZero)) {
+        return self.adjustedInsets.top + self.adjustedInsets.bottom;
+    } else if (@available(iOS 11.0, *)) {
+        UIEdgeInsets safeAeraInsets = [[UIApplication sharedApplication].delegate window].safeAreaInsets;
+        if (safeAeraInsets.top > 0) {
+            return 20 + safeAeraInsets.top + safeAeraInsets.bottom;
+        }
+    }
+    return 40;
 }
 
 #pragma mark - Keyboard

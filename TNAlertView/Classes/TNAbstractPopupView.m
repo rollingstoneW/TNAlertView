@@ -23,9 +23,12 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
 
 @implementation TNAbstractPopupView
 
-//- (void)dealloc {
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+#if DEBUG
 //    NSLog(@"%@ %s", self, __func__);
-//}
+#endif
+}
 
 - (void)showInMainWindow {
     [self showInView:[[UIApplication sharedApplication].delegate window] animated:YES];
@@ -160,6 +163,9 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
     self.dimBackground = YES;
     self.dismissWhenConfirm = YES;
     self.alpha = 0;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleRotate:) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleRotate:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
 }
 
 - (void)_loadSubviews {
@@ -170,6 +176,16 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
 - (void)didShow:(BOOL)animated {}
 - (void)willDismiss:(BOOL)animated {}
 - (void)didDismiss:(BOOL)animated {}
+- (void)willRotateToOrientation:(UIInterfaceOrientation)orientation {}
+- (void)didRotateToOrientation:(UIInterfaceOrientation)orientation {}
+
+- (void)handleRotate:(NSNotification *)note {
+    if ([note.name isEqualToString:UIApplicationWillChangeStatusBarOrientationNotification]) {
+        [self willRotateToOrientation:[note.userInfo[UIApplicationStatusBarOrientationUserInfoKey] integerValue]];
+    } else {
+        [self didRotateToOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    }
+}
 
 - (void)setDimBackground:(BOOL)dimBackground {
     _dimBackground = dimBackground;
