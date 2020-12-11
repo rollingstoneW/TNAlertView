@@ -41,7 +41,7 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
 - (void)showInView:(UIView *)view animated:(BOOL)animated {
     self.superviewToShowing = view;
     self.animated = animated;
-    [self.popupMangager showPopupView:self inView:view animated:animated];
+    [[[self class] customPopupManager] showPopupView:self inView:view animated:animated];
 }
 
 - (void)_showInView:(UIView *)view animated:(BOOL)animated {
@@ -79,7 +79,7 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
         self.confirmedBlock = nil;
         self.cancelledBlock = nil;
 
-        [self.popupMangager dismissedPopupView:self];
+        [[[self class] customPopupManager] dismissedPopupView:self];
     };
     if (animated) {
         [self presentDismissingAnimationWithCompletion:^{
@@ -92,6 +92,32 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
 
 - (void)dismiss {
     [self dismissWithCompletion:nil animated:YES];
+}
+
++ (void)dismissAll {
+    // 先移除未展示的，避免移除展示的时候，未展示的触发条件再展示出来
+    NSArray *allPopups = [[self customPopupManager].toShowingPopupViews arrayByAddingObjectsFromArray:[self customPopupManager].showingPopupViews];
+    for (TNAbstractPopupView *popup in allPopups) {
+        if ([popup isKindOfClass:self]) {
+            [popup dismissWithCompletion:nil animated:NO];
+        }
+    }
+}
+
++ (void)dismissAllInView:(UIView *)view {
+    for (TNAbstractPopupView *popup in [[[self customPopupManager] popupViewsInView:view containToShow:YES] reverseObjectEnumerator]) {
+        if ([popup isKindOfClass:self]) {
+            [popup dismissWithCompletion:nil animated:NO];
+        }
+    }
+}
+
++ (void)dismissAllInKeyWindow {
+    [self dismissAllInView:[UIApplication sharedApplication].keyWindow];
+}
+
++ (void)dismissAllInMainWindow {
+    [self dismissAllInView:[[UIApplication sharedApplication].delegate window]];
 }
 
 - (void)presentShowingAnimationWithCompletion:(dispatch_block_t)completion {
@@ -214,8 +240,8 @@ const TNPopupShowingPriority TNPopupShowingPriorityDefaultLow = 0;
     return _containerView;
 }
 
-- (TNPopupViewManager *)popupMangager {
-    return _popupMangager ?: [TNPopupViewManager lazilyGlobleManager];
++ (TNPopupViewManager *)customPopupManager {
+    return [TNPopupViewManager lazilyGlobleManager];
 }
 
 @end

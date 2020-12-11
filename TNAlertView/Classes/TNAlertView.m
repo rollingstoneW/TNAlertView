@@ -84,8 +84,6 @@ typedef void(^ContainerSizeDidChange)(CGSize size);
 
 @interface TNAlertView () <UITextFieldDelegate>
 
-@property (nonatomic, assign) UIEdgeInsets adjustedInsets;
-
 @property (nullable, nonatomic, strong) UILabel *titleLabel;
 @property (nullable, nonatomic, strong) UITextView *messageTextView;
 @property (nullable, nonatomic, strong) UIView *contentViewContainer;
@@ -148,16 +146,6 @@ typedef void(^ContainerSizeDidChange)(CGSize size);
         _title = title;
         _message = message;
         _buttons = buttons;
-        // 只有确定按钮的弹窗点击蒙层可以关闭
-        if (buttons.count == 1 && buttons.firstObject.style == TNAlertActionStyleDefault) {
-            NSString *alertTitle = [title isKindOfClass:[NSAttributedString class]] ? ((NSAttributedString *)title).string : title;
-            NSString *buttonTitle = buttons.firstObject.currentTitle ?: buttons.firstObject.currentAttributedTitle.string;
-            // 退出教室弹窗除外
-            NSString *exitLiveRoomTitle = @"退出教室";
-            if (![buttonTitle isEqualToString:exitLiveRoomTitle] && ![alertTitle isEqualToString:exitLiveRoomTitle]) {
-                self.tapDimToDismiss = YES;
-            }
-        }
         [self setupDefaults];
         [self loadSubviews];
     }

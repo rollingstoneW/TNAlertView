@@ -38,8 +38,6 @@ typedef NS_ENUM(NSUInteger, TNPopupDismissOthersPolicy) {
 @property (nonatomic, assign) TNPopupDismissOthersPolicy dismissPolicy;
 @property (nonatomic, assign) TNPopupShowingPriority showingPriority;
 
-@property (nonatomic, strong, nullable) __kindof TNPopupViewManager *popupMangager; // 默认是globlePopupManager
-
 @property (nonatomic, assign) CGRect containerFrame;
 
 @property (nonatomic, assign) BOOL dimBackground; // 显示黑色蒙层 YES
@@ -54,9 +52,15 @@ typedef NS_ENUM(NSUInteger, TNPopupDismissOthersPolicy) {
 - (void)showInView:(UIView *)view animated:(BOOL)animated;
 - (void)showInMainWindow;
 - (void)showInKeyWindow;
+
 - (void)dismissWithCompletion:(nullable dispatch_block_t)completion animated:(BOOL)animated; // 消失，isCancel:NO
 - (void)dismissWithCompletion:(nullable dispatch_block_t)completion animated:(BOOL)animated isCancel:(BOOL)isCancel; // 消失
 - (void)dismiss; // 消失
+
++ (void)dismissAll;
++ (void)dismissAllInView:(UIView *)view; // 关闭展示的此类弹窗
++ (void)dismissAllInKeyWindow;
++ (void)dismissAllInMainWindow;
 
 - (void)willShow:(BOOL)animated;
 - (void)didShow:(BOOL)animated;
@@ -75,6 +79,8 @@ typedef NS_ENUM(NSUInteger, TNPopupDismissOthersPolicy) {
 
 // 是否可以被popupView(popupView.showingPriority>=self.showingPriority)自动取消, YES
 - (BOOL)shouldBeDismissedByPopupView:(__kindof TNAbstractPopupView *)popupView;
+
++ (__kindof TNPopupViewManager *)customPopupManager;
 
 @end
 
