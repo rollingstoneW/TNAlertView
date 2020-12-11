@@ -379,27 +379,31 @@ typedef void(^ContainerSizeDidChange)(CGSize size);
     
     __block TNAlertButton *lastButton;
     [lines enumerateObjectsUsingBlock:^(NSArray<TNAlertButton *> * _Nonnull line, NSUInteger lineIdx, BOOL * _Nonnull stop) {
-        UIView *topSeparator = addSeparator();
-        [topSeparator mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.equalTo(lastButton ? lastButton.mas_bottom : self.buttonContainer).offset(lastButton ? self.buttonVerticalSpacing/2 : 0);
-            make.left.equalTo(self.buttonContainer).offset(-self.buttonInsets.left);
-            make.right.equalTo(self.buttonContainer).offset(self.buttonInsets.right);
-            make.height.equalTo(@(separatorWidth));
-        }];
+        if (self.showButtonSeparator) {
+            UIView *topSeparator = addSeparator();
+            [topSeparator mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(lastButton ? lastButton.mas_bottom : self.buttonContainer).offset(lastButton ? self.buttonVerticalSpacing/2 : 0);
+                make.left.equalTo(self.buttonContainer).offset(-self.buttonInsets.left);
+                make.right.equalTo(self.buttonContainer).offset(self.buttonInsets.right);
+                make.height.equalTo(@(separatorWidth));
+            }];
+        }
         
         [line enumerateObjectsUsingBlock:^(TNAlertButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
             if (idx == 0 && line.count > 1) {
-                UIView *verticalSeparator = addSeparator();
-                [verticalSeparator mas_makeConstraints:^(MASConstraintMaker *make) {
-                    make.top.equalTo(button).offset(-self.buttonVerticalSpacing/2);
-                    make.centerX.equalTo(button.mas_right).offset(self.buttonHorizentalSpacing/2);
-                    make.width.equalTo(@(separatorWidth));
-                    if (lineIdx == lines.count - 1) {
-                        make.bottom.equalTo(self.buttonContainer).offset(self.buttonInsets.bottom);
-                    } else {
-                        make.bottom.equalTo(button).offset(self.buttonVerticalSpacing/2);
-                    }
-                }];
+                if (self.showButtonSeparator) {
+                    UIView *verticalSeparator = addSeparator();
+                    [verticalSeparator mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(button).offset(-self.buttonVerticalSpacing/2);
+                        make.centerX.equalTo(button.mas_right).offset(self.buttonHorizentalSpacing/2);
+                        make.width.equalTo(@(separatorWidth));
+                        if (lineIdx == lines.count - 1) {
+                            make.bottom.equalTo(self.buttonContainer).offset(self.buttonInsets.bottom);
+                        } else {
+                            make.bottom.equalTo(button).offset(self.buttonVerticalSpacing/2);
+                        }
+                    }];
+                }
             }
             [button mas_remakeConstraints:^(MASConstraintMaker *make) {
                 if (idx == 0) {
